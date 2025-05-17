@@ -8,7 +8,7 @@ type Person struct {
 	surname    string
 	patronymic string
 	age        uint32
-	gender     string
+	gender     GenderType
 	country    string
 }
 
