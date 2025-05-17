@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: em_db
+    environment:
+      POSTGRES_USER: em_user
+      POSTGRES_PASSWORD: em_password
+      POSTGRES_DB: em_database
+    volumes:
+      - em_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  em_data:
