@@ -15,6 +15,6 @@ type Person struct {
 type GenderType string
 
 const (
-	male   GenderType = "male"
-	female GenderType = "female"
+	Male   GenderType = "male"
+	Female GenderType = "female"
 )

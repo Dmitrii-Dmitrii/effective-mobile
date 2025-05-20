@@ -34,11 +34,7 @@ func (d *PersonDriver) CreatePerson(ctx context.Context, person *models.Person) 
 	return err
 }
 
-func (d *PersonDriver) UpdatePerson(ctx context.Context, personDto dtos.PersonDto) error {
-	if personDto.Id == nil {
-		return errors.New("person don't have id")
-	}
-
+func (d *PersonDriver) UpdatePerson(ctx context.Context, personDto dtos.UpdatePersonDto) error {
 	query := `UPDATE persons`
 
 	setValues, args, argCnt := setArguments(personDto)
@@ -63,7 +59,7 @@ func (d *PersonDriver) DeletePerson(ctx context.Context, id pgtype.UUID) error {
 	return err
 }
 
-func (d *PersonDriver) GetPerson(ctx context.Context, personDto dtos.PersonDto, limit, offset uint32) ([]models.Person, error) {
+func (d *PersonDriver) GetPerson(ctx context.Context, personDto dtos.UpdatePersonDto, limit, offset uint32) ([]models.Person, error) {
 	var persons []models.Person
 	query := queryGetPersons
 
@@ -129,7 +125,7 @@ func (d *PersonDriver) GetPersonById(ctx context.Context, id pgtype.UUID) (*mode
 	return &person, nil
 }
 
-func setArguments(person dtos.PersonDto) ([]string, []interface{}, int) {
+func setArguments(person dtos.UpdatePersonDto) ([]string, []interface{}, int) {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argCnt := 1
