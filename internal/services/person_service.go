@@ -23,7 +23,7 @@ func NewPersonService(personDriver drivers.PersonDriver) *PersonService {
 	return &PersonService{personDriver: personDriver}
 }
 
-func (s *PersonService) CreatePerson(ctx context.Context, personDto dtos.CreatePersonDto) (*models.Person, error) {
+func (s *PersonService) CreatePerson(ctx context.Context, personDto dtos.CreatePersonDto) (*dtos.PersonDto, error) {
 	personId := generateUuid()
 
 	ageChan := make(chan uint32, 1)
@@ -80,21 +80,60 @@ func (s *PersonService) CreatePerson(ctx context.Context, personDto dtos.CreateP
 		return nil, err
 	}
 
-	return person, nil
+	createdPersonDto := mapPersonToDto(person)
+
+	return createdPersonDto, nil
 }
 
-func (s *PersonService) UpdatePerson(ctx context.Context, personDto dtos.UpdatePersonDto) (*models.Person, error) {
-	person, err := s.GetPersonById(ctx, personDto.Id)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, errors.New("person not found")
-	}
+func (s *PersonService) UpdatePerson(ctx context.Context, personDto dtos.PersonDto) (*dtos.PersonDto, error) {
+	_, err := s.GetPersonById(ctx, personDto.Id)
 	if err != nil {
 		return nil, err
 	}
 
+	updatedPerson, err := s.personDriver.UpdatePerson(ctx, personDto)
+	if err != nil {
+		return nil, err
+	}
+
+	genderDto := string(updatedPerson.Gender)
+
+	updatedPersonDto := &dtos.PersonDto{
+		Id:         updatedPerson.Id,
+		Name:       &updatedPerson.Name,
+		Surname:    &updatedPerson.Surname,
+		Patronymic: &updatedPerson.Patronymic,
+		Age:        &updatedPerson.Age,
+		Gender:     &genderDto,
+		Country:    &updatedPerson.Country,
+	}
+	return updatedPersonDto, nil
 }
 
-func (s *PersonService) GetPersonById(ctx context.Context, personId pgtype.UUID) (*models.Person, error) {
+func (s *PersonService) DeletePerson(ctx context.Context, personId pgtype.UUID) error {
+	err := s.personDriver.DeletePerson(ctx, personId)
+	return err
+}
+
+func (s *PersonService) GetPersons(ctx context.Context, getPersonDto dtos.GetPersonDto) ([]dtos.PersonDto, error) {
+	if err := validateGetPersonDto(getPersonDto); err != nil {
+		return nil, err
+	}
+
+	persons, err := s.personDriver.GetPersons(ctx, getPersonDto)
+	if err != nil {
+		return nil, err
+	}
+
+	personDtos := make([]dtos.PersonDto, len(persons))
+	for i, person := range persons {
+		personDtos[i] = *mapPersonToDto(&person)
+	}
+
+	return personDtos, nil
+}
+
+func (s *PersonService) GetPersonById(ctx context.Context, personId pgtype.UUID) (*dtos.PersonDto, error) {
 	person, err := s.personDriver.GetPersonById(ctx, personId)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, errors.New("person not found")
@@ -103,7 +142,9 @@ func (s *PersonService) GetPersonById(ctx context.Context, personId pgtype.UUID)
 		return nil, err
 	}
 
-	return person, nil
+	personDto := mapPersonToDto(person)
+
+	return personDto, nil
 }
 
 func getAge(name string) (uint32, error) {
@@ -205,4 +246,52 @@ func generateUuid() pgtype.UUID {
 	}
 
 	return pgUuid
+}
+
+func mapPersonToDto(person *models.Person) *dtos.PersonDto {
+	genderDto := string(person.Gender)
+
+	personDto := &dtos.PersonDto{
+		Id:         person.Id,
+		Name:       &person.Name,
+		Surname:    &person.Surname,
+		Patronymic: &person.Patronymic,
+		Age:        &person.Age,
+		Gender:     &genderDto,
+		Country:    &person.Country,
+	}
+
+	return personDto
+}
+
+func validateGetPersonDto(getPersonDto dtos.GetPersonDto) error {
+	if len(getPersonDto.Ids) > 0 {
+		for _, id := range getPersonDto.Ids {
+			if !id.Valid {
+				return errors.New("invalid person id")
+			}
+		}
+	}
+
+	if getPersonDto.Limit != nil && *getPersonDto.Limit < 0 {
+		return errors.New("limit cannot be negative")
+	}
+
+	if getPersonDto.Offset != nil && *getPersonDto.Offset < 0 {
+		return errors.New("offset cannot be negative")
+	}
+
+	if getPersonDto.LowAge != nil && *getPersonDto.LowAge < 0 {
+		return errors.New("low age cannot be negative")
+	}
+
+	if getPersonDto.HighAge != nil && *getPersonDto.HighAge < 0 {
+		return errors.New("high age cannot be negative")
+	}
+
+	if getPersonDto.Gender != nil && *getPersonDto.Gender != "male" && *getPersonDto.Gender != "female" {
+		return errors.New("gender must be either 'male' or 'female'")
+	}
+
+	return nil
 }
