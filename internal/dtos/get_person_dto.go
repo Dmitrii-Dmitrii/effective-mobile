@@ -2,6 +2,7 @@ package dtos
 
 import "github.com/jackc/pgx/v5/pgtype"
 
+// GetPersonDto @Description Параметры для фильтрации при получении списка людей
 type GetPersonDto struct {
 	Ids         []pgtype.UUID `json:"ids"`
 	Names       []string      `json:"names"`

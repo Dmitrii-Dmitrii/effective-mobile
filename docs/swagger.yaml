@@ -1,0 +1,239 @@
+definitions:
+  dtos.CreatePersonDto:
+    properties:
+      name:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+  dtos.GetPersonDto:
+    properties:
+      countries:
+        items:
+          type: string
+        type: array
+      gender:
+        type: string
+      high_age:
+        type: integer
+      ids:
+        items:
+          type: string
+        type: array
+      limit:
+        type: integer
+      low_age:
+        type: integer
+      names:
+        items:
+          type: string
+        type: array
+      offset:
+        type: integer
+      patronymics:
+        items:
+          type: string
+        type: array
+      surnames:
+        items:
+          type: string
+        type: array
+    type: object
+  dtos.PersonDto:
+    properties:
+      age:
+        type: integer
+      country:
+        type: string
+      gender:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      patronymic:
+        type: string
+      surname:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для управления данными о людях
+  termsOfService: http://swagger.io/terms/
+  title: Person API
+  version: "1.0"
+paths:
+  /persons:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список людей согласно указанным фильтрам
+      parameters:
+      - description: Параметры фильтрации
+        in: body
+        name: filter
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.GetPersonDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список людей
+          schema:
+            items:
+              $ref: '#/definitions/dtos.PersonDto'
+            type: array
+        "400":
+          description: Ошибка валидации запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получение данных о нескольких людях
+      tags:
+      - persons
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новую запись о человеке на основе переданных данных
+      parameters:
+      - description: Информация о человеке
+        in: body
+        name: person
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreatePersonDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Созданная запись о человеке
+          schema:
+            $ref: '#/definitions/dtos.PersonDto'
+        "400":
+          description: Ошибка валидации запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Создание новой записи о человеке
+      tags:
+      - persons
+    put:
+      consumes:
+      - application/json
+      description: Обновляет существующую запись о человеке на основе переданных данных
+      parameters:
+      - description: Информация о человеке для обновления
+        in: body
+        name: person
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.PersonDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновленная запись о человеке
+          schema:
+            $ref: '#/definitions/dtos.PersonDto'
+        "400":
+          description: Ошибка валидации запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Обновление данных о человеке
+      tags:
+      - persons
+  /persons/{id}:
+    delete:
+      description: Удаляет запись о человеке по указанному ID
+      parameters:
+      - description: ID человека
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Сообщение об успешном удалении
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка валидации запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Удаление записи о человеке
+      tags:
+      - persons
+    get:
+      description: Возвращает информацию о человеке по указанному ID
+      parameters:
+      - description: ID человека
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Информация о человеке
+          schema:
+            $ref: '#/definitions/dtos.PersonDto'
+        "400":
+          description: Ошибка валидации запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получение данных о человеке по ID
+      tags:
+      - persons
+schemes:
+- http
+- https
+swagger: "2.0"
